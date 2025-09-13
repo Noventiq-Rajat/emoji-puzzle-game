@@ -132,6 +132,9 @@ if "puzzle_data" not in st.session_state:
     st.session_state.streak = 0
     new_puzzle(category=None)
 
+# --- Puzzle card wrapper (everything goes inside now) ---
+st.markdown("<div class='puzzle-card'>", unsafe_allow_html=True)
+
 # --- Score ---
 goal = 5
 st.markdown(
@@ -140,10 +143,8 @@ st.markdown(
 )
 st.progress(st.session_state.win_count / goal)
 
-# --- Puzzle card ---
-st.markdown("<div class='puzzle-card'>", unsafe_allow_html=True)
+# --- Puzzle ---
 st.subheader(f"Category: {st.session_state.puzzle_data.get('category','Unknown')}")
-
 st.markdown(
     f"<h1 style='font-size: 4.5em; margin: 20px 0;'>{st.session_state.puzzle_data['puzzle']}</h1>",
     unsafe_allow_html=True
