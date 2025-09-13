@@ -3,42 +3,47 @@ import random
 from difflib import SequenceMatcher
 
 
-# --- Puzzles ---
-puzzles = [
+# --- Realtime Puzzle Generation (simulated) ---
+# A larger, more diverse list of puzzles to simulate realtime generation.
+realtime_puzzles = [
+    # Movies
+    {"puzzle": "🕷️👨‍🦱➡️️🕷️👨", "answer": "Spider-Man: Into the Spider-Verse", "category": "Movies"},
+    {"puzzle": "🚗💨😡", "answer": "Fast & Furious", "category": "Movies"},
+    {"puzzle": "🧙‍♂️💍⛰️", "answer": "The Lord of the Rings", "category": "Movies"},
+    {"puzzle": "🧑‍🚀🌌⭐", "answer": "Interstellar", "category": "Movies"},
+    {"puzzle": "🤠🚀", "answer": "Toy Story", "category": "Movies"},
+    {"puzzle": "🏴‍☠️🌊💎", "answer": "Pirates of the Caribbean", "category": "Movies"},
     {"puzzle": "🦁👑", "answer": "The Lion King", "category": "Movies"},
     {"puzzle": "🎈🏠", "answer": "Up", "category": "Movies"},
     {"puzzle": "🐠🔍", "answer": "Finding Nemo", "category": "Movies"},
-    {"puzzle": "🕰️✈️", "answer": "Time flies", "category": "Phrases"},
-    {"puzzle": "🤔🐱💀", "answer": "Curiosity killed the cat", "category": "Phrases"},
     {"puzzle": "👨‍🍳🐀", "answer": "Ratatouille", "category": "Movies"},
     {"puzzle": "🤖❤️🤖", "answer": "WALL-E", "category": "Movies"},
     {"puzzle": "🕷️👨", "answer": "Spider-Man", "category": "Movies"},
+    # Phrases
+    {"puzzle": "🍎➡️️🌳", "answer": "The apple doesn't fall far from the tree", "category": "Phrases"},
+    {"puzzle": "🐦➡️️🗣️", "answer": "A little bird told me", "category": "Phrases"},
+    {"puzzle": "💰🗣️", "answer": "Money talks", "category": "Phrases"},
+    {"puzzle": "🔥+💧", "answer": "Opposites attract", "category": "Phrases"},
+    {"puzzle": "🕰️✈️", "answer": "Time flies", "category": "Phrases"},
+    {"puzzle": "🤔🐱💀", "answer": "Curiosity killed the cat", "category": "Phrases"},
 ]
+
+def generate_realtime_puzzle(category=None):
+    """Generates a new puzzle, simulating a realtime API call."""
+    if category and category != "Any":
+        filtered_puzzles = [p for p in realtime_puzzles if p["category"] == category]
+        if filtered_puzzles:
+            return random.choice(filtered_puzzles)
+    return random.choice(realtime_puzzles)
+
 
 # --- CSS Themes ---
 def get_css(theme):
     base_css = """
-    /* Puzzle Card */
-    # .puzzle-card {
-    #     background: rgba(255, 255, 255, 0.15);
-    #     border-radius: 20px;
-    #     padding: 30px;
-    #     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    #     backdrop-filter: blur(10px);
-    #     border: 1px solid rgba(255, 255, 255, 0.2);
-    #     text-align: center;
-    #     margin-top: 20px;
-    #     transition: transform 0.2s ease-in-out;
-    # }
-    # .puzzle-card:hover {
-    #     transform: scale(1.02);
-    # }
-
     /* Sidebar text fix */
     [data-testid="stSidebar"] .stSelectbox div,
     [data-testid="stSidebar"] .stSelectbox label,
     [data-testid="stSidebar"] .stSelectbox span {
-        color: white !important;
     }
 
     /* Button styles */
@@ -95,21 +100,27 @@ def is_correct(guess, answer):
     return SequenceMatcher(None, guess.lower().strip(), answer.lower().strip()).ratio() > 0.8
 
 def new_puzzle(category=None):
-    """Select new puzzle by category"""
-    if category:
-        filtered = [p for p in puzzles if p["category"].lower() == category.lower()]
-        if filtered:
-            st.session_state.puzzle_data = random.choice(filtered)
-            return
-    st.session_state.puzzle_data = random.choice(puzzles)
+    """Select new puzzle by category using realtime generation"""
+    st.session_state.puzzle_data = generate_realtime_puzzle(category)
     st.session_state.show_answer = False
-    st.session_state.guess = ""
+    # The line below is removed to prevent the error. The trade-off is that the input box is not cleared.
+    # st.session_state.guess = ""
 
 
 # --- Sidebar ---
 st.sidebar.title("⚙️ Settings")
 theme = st.sidebar.selectbox("🎨 Theme", ["Default", "Movies Night", "Space Adventure"])
 category = st.sidebar.selectbox("📂 Category", ["Any", "Movies", "Phrases"])
+
+# --- Handle Category Change ---
+if "selected_category" not in st.session_state:
+    st.session_state.selected_category = category
+
+if st.session_state.selected_category != category:
+    st.session_state.selected_category = category
+    new_puzzle(category if category != "Any" else None)
+    st.experimental_rerun()
+
 
 # --- Apply CSS ---
 st.markdown(f"<style>{get_css(theme)}</style>", unsafe_allow_html=True)
@@ -128,7 +139,7 @@ st.markdown(
 if "puzzle_data" not in st.session_state:
     st.session_state.win_count = 0
     st.session_state.streak = 0
-    new_puzzle(category=None)
+    new_puzzle(category if category != "Any" else None)
 
 # --- Puzzle card wrapper (everything goes inside now) ---
 st.markdown("<div class='puzzle-card'>", unsafe_allow_html=True)
@@ -188,4 +199,4 @@ with col3:
 if st.session_state.get("show_answer", False):
     st.info(f"The answer is: **{st.session_state.puzzle_data['answer']}**")
 
-st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True
