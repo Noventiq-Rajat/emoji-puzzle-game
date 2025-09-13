@@ -1,159 +1,163 @@
 import streamlit as st
 import random
-import subprocess
-import json
 from difflib import SequenceMatcher
 
-# --- Utility Functions ---
-def similarity(a, b):
-    return SequenceMatcher(None, a.lower().strip(), b.lower().strip()).ratio()
 
-def is_correct(guess, answer, threshold=0.75):
-    return similarity(guess, answer) >= threshold
+# --- Puzzles ---
+puzzles = [
+    {"puzzle": "🦁👑", "answer": "The Lion King", "category": "Movies"},
+    {"puzzle": "🎈🏠", "answer": "Up", "category": "Movies"},
+    {"puzzle": "🐠🔍", "answer": "Finding Nemo", "category": "Movies"},
+    {"puzzle": "🕰️✈️", "answer": "Time flies", "category": "Phrases"},
+    {"puzzle": "🤔🐱💀", "answer": "Curiosity killed the cat", "category": "Phrases"},
+    {"puzzle": "👨‍🍳🐀", "answer": "Ratatouille", "category": "Movies"},
+    {"puzzle": "🤖❤️🤖", "answer": "WALL-E", "category": "Movies"},
+    {"puzzle": "🕷️👨", "answer": "Spider-Man", "category": "Movies"},
+]
 
-def get_puzzle_from_gemini(category="general"):
-    """
-    Calls Gemini CLI to fetch a new emoji puzzle in JSON.
-    User can pick category: movies, phrases, songs, animals, etc.
-    """
-    prompt = f"You are an Emoji Puzzle Master. Generate ONE emoji puzzle in JSON format with keys 'puzzle' and 'answer'. Category: {category}."
-    try:
-        result = subprocess.run(
-            ["gemini", "prompt", prompt],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        text = result.stdout.strip()
-        return json.loads(text)
-    except Exception as e:
-        # Fallback to static puzzle if Gemini fails
-        return random.choice([
-            {"puzzle": "🦁👑", "answer": "The Lion King"},
-            {"puzzle": "🎈🏠", "answer": "Up"},
-            {"puzzle": "🐠🔍", "answer": "Finding Nemo"},
-        ])
-
-def new_puzzle():
-    """Fetch puzzle (Gemini or fallback) and reset state."""
-    category = st.session_state.get("category", "general")
-    st.session_state.puzzle_data = get_puzzle_from_gemini(category)
-    st.session_state.show_answer = False
-    st.session_state.guess = ""  # auto-clear input
-
-# --- Modern CSS ---
+# --- CSS Themes ---
 def get_css(theme):
     base_css = """
     .puzzle-card {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
         padding: 30px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         text-align: center;
         margin-top: 20px;
-        margin-bottom: 20px;
     }
-    .puzzle-emoji {
-        font-size: 4em;
-        line-height: 1.4;
+    input {
+        border-radius: 10px !important;
+        padding: 10px !important;
     }
-    .score-box {
-        font-size: 1.1em;
-        font-weight: 600;
-        text-align: right;
-        margin-bottom: 10px;
+    [data-testid="stSidebar"] .stSelectbox div,
+    [data-testid="stSidebar"] .stSelectbox label,
+    [data-testid="stSidebar"] button {
+        color: white !important;
     }
     """
     if theme == "Movies Night":
         return base_css + """
         [data-testid="stAppViewContainer"] {
-            background: linear-gradient(135deg, #2c3e50, #4ca1af);
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
         }
         [data-testid="stSidebar"] {
-            background-color: #2c3e50;
+            background: #1e3c72;
         }
         """
     elif theme == "Space Adventure":
         return base_css + """
         [data-testid="stAppViewContainer"] {
-            background: radial-gradient(circle at top, #0f2027, #203a43, #2c5364);
+            background: linear-gradient(135deg, #000428, #004e92);
             color: white;
         }
         [data-testid="stSidebar"] {
-            background-color: #0f2027;
+            background: #000428;
         }
         """
-    else:  # Default
+    else:  # Default modern purple
         return base_css + """
         [data-testid="stAppViewContainer"] {
-            background: linear-gradient(135deg, #1f1c2c, #928dab);
+            background: linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b);
             color: white;
         }
         [data-testid="stSidebar"] {
-            background-color: #1f1c2c;
+            background: #3a1c71;
         }
         """
 
-# --- App Start ---
+# --- Helpers ---
+def is_correct(guess, answer):
+    """Fuzzy matching for flexible answers"""
+    return SequenceMatcher(None, guess.lower().strip(), answer.lower().strip()).ratio() > 0.8
+
+def new_puzzle(category=None):
+    """Select new puzzle by category"""
+    if category:
+        filtered = [p for p in puzzles if p["category"].lower() == category.lower()]
+        if filtered:
+            st.session_state.puzzle_data = random.choice(filtered)
+            return
+    st.session_state.puzzle_data = random.choice(puzzles)
+    st.session_state.show_answer = False
+    st.session_state.guess = ""
+
+# --- Sidebar ---
 st.sidebar.title("⚙️ Settings")
-
-# Theme
 theme = st.sidebar.selectbox("🎨 Theme", ["Default", "Movies Night", "Space Adventure"])
+category = st.sidebar.selectbox("📂 Category", ["Any", "Movies", "Phrases"])
 
-# Category for puzzles
-category = st.sidebar.selectbox("📂 Category", ["general", "movies", "phrases", "songs", "animals", "food"])
-st.session_state.category = category
-
+# --- Apply CSS ---
 st.markdown(f"<style>{get_css(theme)}</style>", unsafe_allow_html=True)
 
-st.title("🎮 Emoji Puzzle Master")
+# --- Header ---
+st.markdown(
+    """
+    <h1 style='text-align: center; color: white; font-size: 2.8em; margin-bottom: 10px;'>
+        🎮 Emoji Puzzle Master
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
 
-# --- Session State ---
+# --- Init state ---
 if "puzzle_data" not in st.session_state:
     st.session_state.win_count = 0
-    st.session_state.goal = 5
-    new_puzzle()
-
-# --- Win Screen ---
-if st.session_state.win_count >= st.session_state.goal:
-    st.success("🏆 Congratulations! You’ve completed the challenge! 🎊")
-    st.balloons()
-    if st.button("Play Again"):
-        st.session_state.win_count = 0
-        new_puzzle()
-    st.stop()
+    st.session_state.streak = 0
+    new_puzzle(category=None)
 
 # --- Score ---
-st.markdown(f"<div class='score-box'>Score: {st.session_state.win_count}/{st.session_state.goal}</div>", unsafe_allow_html=True)
-st.progress(st.session_state.win_count / st.session_state.goal)
+goal = 5
+st.markdown(f"<div style='text-align: right; font-size:1.1em;'>Score: {st.session_state.win_count}/{goal}</div>", unsafe_allow_html=True)
+st.progress(st.session_state.win_count / goal)
 
-# --- Puzzle Card ---
+# --- Puzzle card ---
 st.markdown("<div class='puzzle-card'>", unsafe_allow_html=True)
-st.subheader(f"Category: {st.session_state.category.capitalize()}")
-st.markdown(f"<div class='puzzle-emoji'>{st.session_state.puzzle_data['puzzle']}</div>", unsafe_allow_html=True)
+st.subheader(f"Category: {st.session_state.puzzle_data.get('category','Unknown')}")
 
-# --- Input ---
+st.markdown(
+    f"<h1 style='font-size: 4.5em; margin: 20px 0;'>{st.session_state.puzzle_data['puzzle']}</h1>",
+    unsafe_allow_html=True
+)
+
+# --- User input ---
 guess = st.text_input("Your Guess:", key="guess", placeholder="Type your guess here...")
 
 # --- Buttons ---
 col1, col2, col3 = st.columns(3)
+
 with col1:
     if st.button("Submit"):
         if is_correct(guess, st.session_state.puzzle_data["answer"]):
             st.success("✅ Correct! 🎉")
-            st.toast("🔥 Great job!")
+            st.balloons()
             st.session_state.win_count += 1
-            new_puzzle()
+            st.session_state.streak += 1
+            if st.session_state.win_count >= goal:
+                st.success("🏆 You’ve completed the game! 🎊")
+                if st.button("Play Again"):
+                    st.session_state.win_count = 0
+                    st.session_state.streak = 0
+                    new_puzzle(category if category != "Any" else None)
+                    st.experimental_rerun()
+            else:
+                new_puzzle(category if category != "Any" else None)
+                st.experimental_rerun()
         else:
-            st.error("❌ Not quite. Try again!")
+            st.error("❌ Incorrect. Try again!")
+            st.session_state.streak = 0
+
 with col2:
     if st.button("Show Answer"):
         st.session_state.show_answer = True
-with col3:
-    st.button("Skip", on_click=new_puzzle)
 
-# --- Show Answer ---
+with col3:
+    if st.button("Skip"):
+        new_puzzle(category if category != "Any" else None)
+        st.experimental_rerun()
+
+# --- Show answer ---
 if st.session_state.get("show_answer", False):
     st.info(f"The answer is: **{st.session_state.puzzle_data['answer']}**")
 
