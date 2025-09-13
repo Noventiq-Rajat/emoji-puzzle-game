@@ -46,8 +46,6 @@ def get_css(theme):
         border-radius: 25px;
         padding: 10px 20px;
         font-weight: 600;
-        color: white !important;
-        border: none;
         transition: all 0.3s ease;
     }
     .stButton button:hover {
