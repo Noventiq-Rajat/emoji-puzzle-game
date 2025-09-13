@@ -18,24 +18,47 @@ puzzles = [
 # --- CSS Themes ---
 def get_css(theme):
     base_css = """
+    /* Puzzle Card */
     .puzzle-card {
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.15);
         border-radius: 20px;
         padding: 30px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         text-align: center;
         margin-top: 20px;
+        transition: transform 0.2s ease-in-out;
     }
-    input {
-        border-radius: 10px !important;
-        padding: 10px !important;
+    .puzzle-card:hover {
+        transform: scale(1.02);
     }
+
+    /* Sidebar text fix */
     [data-testid="stSidebar"] .stSelectbox div,
     [data-testid="stSidebar"] .stSelectbox label,
-    [data-testid="stSidebar"] button {
+    [data-testid="stSidebar"] .stSelectbox span {
         color: white !important;
     }
+
+    /* Button styles */
+    .stButton button {
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-weight: 600;
+        color: white !important;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .stButton button:hover {
+        opacity: 0.9;
+        transform: scale(1.05);
+    }
+    #submit_btn button {background-color: #4CAF50 !important;}  /* Green */
+    #answer_btn button {background-color: #FFC107 !important;}  /* Yellow */
+    #skip_btn button {background-color: #F44336 !important;}    /* Red */
     """
+
     if theme == "Movies Night":
         return base_css + """
         [data-testid="stAppViewContainer"] {
@@ -56,7 +79,7 @@ def get_css(theme):
             background: #000428;
         }
         """
-    else:  # Default modern purple
+    else:  # Default purple theme
         return base_css + """
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b);
@@ -66,6 +89,7 @@ def get_css(theme):
             background: #3a1c71;
         }
         """
+
 
 # --- Helpers ---
 def is_correct(guess, answer):
@@ -82,6 +106,7 @@ def new_puzzle(category=None):
     st.session_state.puzzle_data = random.choice(puzzles)
     st.session_state.show_answer = False
     st.session_state.guess = ""
+
 
 # --- Sidebar ---
 st.sidebar.title("⚙️ Settings")
@@ -109,7 +134,10 @@ if "puzzle_data" not in st.session_state:
 
 # --- Score ---
 goal = 5
-st.markdown(f"<div style='text-align: right; font-size:1.1em;'>Score: {st.session_state.win_count}/{goal}</div>", unsafe_allow_html=True)
+st.markdown(
+    f"<div style='text-align: right; font-size:1.1em;'>Score: {st.session_state.win_count}/{goal}</div>",
+    unsafe_allow_html=True
+)
 st.progress(st.session_state.win_count / goal)
 
 # --- Puzzle card ---
@@ -128,7 +156,7 @@ guess = st.text_input("Your Guess:", key="guess", placeholder="Type your guess h
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    if st.button("Submit"):
+    if st.button("Submit", key="submit_btn"):
         if is_correct(guess, st.session_state.puzzle_data["answer"]):
             st.success("✅ Correct! 🎉")
             st.balloons()
@@ -149,11 +177,11 @@ with col1:
             st.session_state.streak = 0
 
 with col2:
-    if st.button("Show Answer"):
+    if st.button("Show Answer", key="answer_btn"):
         st.session_state.show_answer = True
 
 with col3:
-    if st.button("Skip"):
+    if st.button("Skip", key="skip_btn"):
         new_puzzle(category if category != "Any" else None)
         st.experimental_rerun()
 
