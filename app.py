@@ -199,4 +199,4 @@ with col3:
 if st.session_state.get("show_answer", False):
     st.info(f"The answer is: **{st.session_state.puzzle_data['answer']}**")
 
-st.markdown("</div>", unsafe_allow_html=True
+st.markdown("</div>", unsafe_allow_html=True)
