@@ -19,20 +19,20 @@ puzzles = [
 def get_css(theme):
     base_css = """
     /* Puzzle Card */
-    .puzzle-card {
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        text-align: center;
-        margin-top: 20px;
-        transition: transform 0.2s ease-in-out;
-    }
-    .puzzle-card:hover {
-        transform: scale(1.02);
-    }
+    # .puzzle-card {
+    #     background: rgba(255, 255, 255, 0.15);
+    #     border-radius: 20px;
+    #     padding: 30px;
+    #     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    #     backdrop-filter: blur(10px);
+    #     border: 1px solid rgba(255, 255, 255, 0.2);
+    #     text-align: center;
+    #     margin-top: 20px;
+    #     transition: transform 0.2s ease-in-out;
+    # }
+    # .puzzle-card:hover {
+    #     transform: scale(1.02);
+    # }
 
     /* Sidebar text fix */
     [data-testid="stSidebar"] .stSelectbox div,
