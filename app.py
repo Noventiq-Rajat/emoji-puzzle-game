@@ -57,9 +57,9 @@ def get_css(theme):
         opacity: 0.9;
         transform: scale(1.05);
     }
-    #submit_btn button {background-color: #4CAF50 !important;}  /* Green */
-    #answer_btn button {background-color: #FFC107 !important;}  /* Yellow */
-    #skip_btn button {background-color: #F44336 !important;}    /* Red */
+    #submit_btn .stButton button {background-color: #4CAF50 !important;}  /* Green */
+    #answer_btn .stButton button {background-color: #FFC107 !important;}  /* Yellow */
+    #skip_btn .stButton button {background-color: #F44336 !important;}    /* Red */
     """
 
     if theme == "Movies Night":
@@ -166,7 +166,8 @@ guess = st.text_input("Your Guess:", key="guess", placeholder="Type your guess h
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    if st.button("Submit", key="submit_btn"):
+    st.markdown("<div id='submit_btn'>", unsafe_allow_html=True)
+    if st.button("Submit"):
         if is_correct(guess, st.session_state.puzzle_data["answer"]):
             st.success("✅ Correct! 🎉")
             st.balloons()
@@ -185,15 +186,20 @@ with col1:
         else:
             st.error("❌ Incorrect. Try again!")
             st.session_state.streak = 0
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with col2:
-    if st.button("Show Answer", key="answer_btn"):
+    st.markdown("<div id='answer_btn'>", unsafe_allow_html=True)
+    if st.button("Show Answer"):
         st.session_state.show_answer = True
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with col3:
-    if st.button("Skip", key="skip_btn"):
+    st.markdown("<div id='skip_btn'>", unsafe_allow_html=True)
+    if st.button("Skip"):
         new_puzzle(category if category != "Any" else None)
         st.experimental_rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # --- Show answer ---
 if st.session_state.get("show_answer", False):
